@@ -1,0 +1,42 @@
+name: iOS Build and Test
+
+# 1. TRIGGER
+on:
+  pull_request:
+    branches:
+      - main
+
+# 2. LES JOBS
+jobs:
+  build-and-test:
+    name: Build and Test existing app
+    # 'macos-latest' nous donne une machine virtuelle (VM) avec la dernière version stable de macOS et Xcode.
+    runs-on: macos-latest
+
+    # 3. STEPS
+    steps:
+      
+      # Étape A : Récupérer le code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Étape B : Compiler et Tester
+      - name: Build and Test
+        uses: sersoft-gmbh/xcodebuild-action@v3
+        with:
+          project: EPCollaboratif.xcodeproj
+          scheme: EPCollaboratif
+
+          destination: 'platform=iOS Simulator,name=iPhone 14'
+          action: test
+         
+          result-bundle-path: 'TestResults/TestResults.xcresult'
+
+      # Étape C : Traitement des rapports
+      - name: Process Test Results
+        uses: kishikawakatsumi/xcresulttool@v1
+        if: success() || failure()
+        with:
+          path: 'TestResults/TestResults.xcresult'
+          show-passed-tests: true
+          title: 'iOS Test Report'
