@@ -12,6 +12,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: List Available Simulators
+        run: xcrun simctl list devices available
+
       - name: Build and Test
         uses: sersoft-gmbh/xcodebuild-action@v3
         with:
