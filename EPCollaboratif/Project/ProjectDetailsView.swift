@@ -58,9 +58,9 @@ struct ProjectDetailsView: View {
             }
         }
         .navigationBarTitle(Text("Détails du projet"), displayMode: .inline)
-        .navigationBarItems(trailing: Button(action: {
+        .navigationBarItems(trailing: Button {
             showingTaskForm = true
-        }) {
+        } label: {
             Image(systemName: "plus")
         })
         .sheet(isPresented: $showingTaskForm) {

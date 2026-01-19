@@ -1,0 +1,17 @@
+included:
+  - EPCollaboratif
+
+excluded:
+  - EPCollaboratifTests
+  - EPCollaboratifUITests
+  - EPCollaboratif/MockData.swift  # <-- On ignore ce fichier qui pollue ton log
+
+disabled_rules:
+  - trailing_whitespace
+  - force_cast
+  - type_name
+  - trailing_comma        # <-- On autorise les virgules à la fin des listes
+  - line_length           # <-- On ignore la longueur des lignes pour l'instant
+
+opt_in_rules:
+  - empty_count
