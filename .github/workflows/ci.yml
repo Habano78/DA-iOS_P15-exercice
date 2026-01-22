@@ -7,15 +7,33 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # 👇 L'étape Qualité que nous avons ajoutée
+      - name: Run SwiftLint
+        run: |
+          brew install swiftlint
+          swiftlint lint --reporter github-actions-logging
+
+      - name: List Available Simulators
+        run: xcrun simctl list devices available
 
       - name: Build and Test
         uses: sersoft-gmbh/xcodebuild-action@v3
         with:
           project: EPCollaboratif.xcodeproj
           scheme: EPCollaboratif
-          destination: 'platform=iOS Simulator,name=iPhone 16,OS=latest'
+          destination: 'platform=iOS Simulator,name=iPhone 15,OS=latest'
           action: test
+          result-bundle-path: 'TestResults/TestResults.xcresult'
+
+      - name: Process Test Results
+        uses: kishikawakatsumi/xcresulttool@v1
+        if: success() || failure()
+        with:
+          path: 'TestResults/TestResults.xcresult'
+          show-passed-tests: true
+          title: 'iOS Test Report'
