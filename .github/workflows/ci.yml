@@ -1,39 +1,40 @@
 name: iOS Build and Test
 
 on:
-  pull_request:
-    branches:
-      - main
+        pull_request:
+        branches:
+        - main
 
 jobs:
-  build-and-test:
-    runs-on: macos-14
-    steps:
-      - name: Checkout repository
+        build-and-test:
+        runs-on: macos-14
+        steps:
+        - name: Checkout repository
         uses: actions/checkout@v4
-
-      # 👇 L'étape Qualité que nous avons ajoutée
-      - name: Run SwiftLint
+        
+        # verification de la qualité du code
+        - name: Run SwiftLint
         run: |
           brew install swiftlint
           swiftlint lint --reporter github-actions-logging
-
-      - name: List Available Simulators
+        
+        - name: List Available Simulators
         run: xcrun simctl list devices available
-
-      - name: Build and Test
+        
+        - name: Build and Test
         uses: sersoft-gmbh/xcodebuild-action@v3
         with:
-          project: EPCollaboratif.xcodeproj
-          scheme: EPCollaboratif
-          destination: 'platform=iOS Simulator,name=iPhone 15,OS=latest'
-          action: test
-          result-bundle-path: 'TestResults/TestResults.xcresult'
-
-      - name: Process Test Results
+                project: EPCollaboratif.xcodeproj
+                scheme: EPCollaboratif
+                destination: 'platform=iOS Simulator,name=iPhone 15,OS=latest'
+                action: test
+                result-bundle-path: 'TestResults/TestResults.xcresult'
+        
+        - name: Process Test Results
         uses: kishikawakatsumi/xcresulttool@v1
         if: success() || failure()
         with:
-          path: 'TestResults/TestResults.xcresult'
-          show-passed-tests: true
-          title: 'iOS Test Report'
+        path: 'TestResults/TestResults.xcresult'
+        artifact-name: 'ios-test-results'
+        show-passed-tests: true
+        title: 'iOS Test Report'
