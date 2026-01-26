@@ -1,0 +1,38 @@
+name: iOS Delivery (CD)
+
+on:
+  push:
+    branches:
+      - feature/setup-cd
+      - main
+
+jobs:
+  deploy:
+    runs-on: macos-14
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Release App (Unsigned)
+        run: |
+          xcodebuild build \
+          -project EPCollaboratif.xcodeproj \
+          -scheme EPCollaboratif \
+          -configuration Release \
+          -sdk iphoneos \
+          -derivedDataPath Build/ \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Create Unsigned IPA
+        run: |
+          mkdir Payload
+          mv Build/Build/Products/Release-iphoneos/EPCollaboratif.app Payload/
+          zip -r EPCollaboratif_Unsigned.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: epcollaboratif-release
+          path: EPCollaboratif_Unsigned.ipa
