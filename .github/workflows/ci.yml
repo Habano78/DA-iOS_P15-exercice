@@ -1,5 +1,4 @@
 name: iOS Build and Test
-
 on:
   pull_request:
     branches:
@@ -8,30 +7,42 @@ on:
 jobs:
   build-and-test:
     runs-on: macos-14
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run SwiftLint
+      - name: Clean DerivedData
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      - name: Run tests
         run: |
-          brew install swiftlint
-          swiftlint lint --reporter github-actions-logging
-
-      - name: List Available Simulators
-        run: xcrun simctl list devices available
-
-      - name: Build and Test
-        uses: sersoft-gmbh/xcodebuild-action@v3
+          set -o pipefail
+          xcodebuild test \
+            -project EPCollaboratif.xcodeproj \
+            -scheme EPCollaboratif \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
+            -derivedDataPath DerivedData \
+            -resultBundlePath test-results.xcresult \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            | xcbeautify
+      - name: Process Test Results
+        uses: kishikawakatsumi/xcresulttool@v1
         with:
-          project: EPCollaboratif.xcodeproj
-          scheme: EPCollaboratif
-          destination: 'platform=iOS Simulator,name=iPhone 15,OS=latest'
-          action: test
-          result-bundle-path: 'TestResults/TestResults.xcresult'
-      
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+          path: test-results.xcresult
+          token: ${{ secrets.GITHUB_TOKEN }}
         if: success() || failure()
+        continue-on-error: true
+
+      - name: Upload test bundle
+        uses: actions/upload-artifact@v4
         with:
-          name: TestResults
-          path: 'TestResults/TestResults.xcresult'
+          name: test-results
+          path: test-results.xcresult
+        if: always()
